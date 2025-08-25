@@ -1,0 +1,630 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Users, 
+  MessageSquare, 
+  CheckSquare, 
+  Calendar, 
+  FileText, 
+  Plus, 
+  Search,
+  Bell,
+  Settings,
+  Home,
+  Archive,
+  Clock,
+  User,
+  Send,
+  Paperclip,
+  MoreHorizontal,
+  Check,
+  X,
+  Edit3,
+  Trash2
+} from 'lucide-react';
+
+const BasecampClone = () => {
+  const [activeProject, setActiveProject] = useState(0);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [projects, setProjects] = useState([
+    {
+      id: 1,
+      name: 'Website Redesign',
+      description: 'Complete overhaul of company website',
+      team: ['John', 'Sarah', 'Mike', 'Lisa'],
+      color: 'bg-blue-500'
+    },
+    {
+      id: 2, 
+      name: 'Mobile App Launch',
+      description: 'iOS and Android app development',
+      team: ['Alex', 'Emma', 'Tom'],
+      color: 'bg-green-500'
+    }
+  ]);
+
+  const [messages, setMessages] = useState([
+    {
+      id: 1,
+      author: 'Sarah Johnson',
+      content: 'Hey team! Just wanted to share the latest mockups for the homepage. Really excited about the new direction.',
+      timestamp: '2 hours ago',
+      projectId: 1
+    },
+    {
+      id: 2,
+      author: 'Mike Chen',
+      content: 'The user testing results are in. Overall positive feedback with some suggested improvements to the navigation.',
+      timestamp: '4 hours ago', 
+      projectId: 1
+    }
+  ]);
+
+  const [todos, setTodos] = useState([
+    {
+      id: 1,
+      task: 'Finalize homepage design',
+      completed: false,
+      assignee: 'Sarah',
+      dueDate: '2025-08-25',
+      projectId: 1
+    },
+    {
+      id: 2,
+      task: 'Conduct user interviews',
+      completed: true,
+      assignee: 'Mike',
+      dueDate: '2025-08-20',
+      projectId: 1
+    },
+    {
+      id: 3,
+      task: 'Setup development environment',
+      completed: false,
+      assignee: 'Alex',
+      dueDate: '2025-08-26',
+      projectId: 2
+    }
+  ]);
+
+  const [events, setEvents] = useState([
+    {
+      id: 1,
+      title: 'Design Review Meeting',
+      date: '2025-08-25',
+      time: '10:00 AM',
+      projectId: 1
+    },
+    {
+      id: 2,
+      title: 'Sprint Planning',
+      date: '2025-08-26',
+      time: '2:00 PM', 
+      projectId: 2
+    }
+  ]);
+
+  const [documents, setDocuments] = useState([
+    {
+      id: 1,
+      name: 'Project Requirements.pdf',
+      author: 'John Doe',
+      modified: '2025-08-20',
+      projectId: 1
+    },
+    {
+      id: 2,
+      name: 'Design System Guidelines.sketch',
+      author: 'Sarah Johnson',
+      modified: '2025-08-21',
+      projectId: 1
+    }
+  ]);
+
+  const [newMessage, setNewMessage] = useState('');
+  const [newTodo, setNewTodo] = useState('');
+  const [showNewProjectModal, setShowNewProjectModal] = useState(false);
+  const [newProject, setNewProject] = useState({ name: '', description: '' });
+
+  const addMessage = () => {
+    if (newMessage.trim()) {
+      const message = {
+        id: Date.now(),
+        author: 'You',
+        content: newMessage,
+        timestamp: 'Just now',
+        projectId: projects[activeProject].id
+      };
+      setMessages([message, ...messages]);
+      setNewMessage('');
+    }
+  };
+
+  const addTodo = () => {
+    if (newTodo.trim()) {
+      const todo = {
+        id: Date.now(),
+        task: newTodo,
+        completed: false,
+        assignee: 'Unassigned',
+        dueDate: '',
+        projectId: projects[activeProject].id
+      };
+      setTodos([...todos, todo]);
+      setNewTodo('');
+    }
+  };
+
+  const toggleTodo = (id) => {
+    setTodos(todos.map(todo => 
+      todo.id === id ? { ...todo, completed: !todo.completed } : todo
+    ));
+  };
+
+  const createProject = () => {
+    if (newProject.name.trim()) {
+      const project = {
+        id: Date.now(),
+        name: newProject.name,
+        description: newProject.description,
+        team: [],
+        color: 'bg-purple-500'
+      };
+      setProjects([...projects, project]);
+      setNewProject({ name: '', description: '' });
+      setShowNewProjectModal(false);
+    }
+  };
+
+  const currentProject = projects[activeProject];
+  const currentProjectTodos = todos.filter(todo => todo.projectId === currentProject?.id);
+  const currentProjectMessages = messages.filter(msg => msg.projectId === currentProject?.id);
+  const currentProjectEvents = events.filter(event => event.projectId === currentProject?.id);
+  const currentProjectDocs = documents.filter(doc => doc.projectId === currentProject?.id);
+
+  const Sidebar = () => (
+    <div className="w-64 bg-gray-900 text-white h-screen flex flex-col">
+      <div className="p-4 border-b border-gray-700">
+        <h1 className="text-xl font-bold">ProjectHub</h1>
+        <p className="text-gray-400 text-sm">Team collaboration made simple</p>
+      </div>
+      
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-medium text-gray-300 uppercase tracking-wide">Projects</h2>
+            <button 
+              onClick={() => setShowNewProjectModal(true)}
+              className="p-1 hover:bg-gray-700 rounded"
+            >
+              <Plus size={16} />
+            </button>
+          </div>
+          
+          <div className="space-y-2">
+            {projects.map((project, index) => (
+              <button
+                key={project.id}
+                onClick={() => setActiveProject(index)}
+                className={`w-full text-left p-3 rounded-lg transition-colors ${
+                  activeProject === index 
+                    ? 'bg-blue-600 text-white' 
+                    : 'hover:bg-gray-700 text-gray-300'
+                }`}
+              >
+                <div className="flex items-center">
+                  <div className={`w-3 h-3 rounded-full ${project.color} mr-3`}></div>
+                  <div>
+                    <p className="font-medium">{project.name}</p>
+                    <p className="text-xs text-gray-400">{project.team.length} members</p>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      <div className="p-4 border-t border-gray-700">
+        <div className="flex items-center">
+          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+            <User size={16} />
+          </div>
+          <div>
+            <p className="font-medium">Your Account</p>
+            <p className="text-xs text-gray-400">Premium Plan</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const TabNavigation = () => (
+    <div className="border-b border-gray-200 bg-white">
+      <div className="flex space-x-6 px-6">
+        {[
+          { id: 'overview', label: 'Overview', icon: Home },
+          { id: 'messages', label: 'Message Board', icon: MessageSquare },
+          { id: 'todos', label: 'To-dos', icon: CheckSquare },
+          { id: 'schedule', label: 'Schedule', icon: Calendar },
+          { id: 'documents', label: 'Documents', icon: FileText }
+        ].map(tab => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center px-3 py-4 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === tab.id
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <Icon size={16} className="mr-2" />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const Overview = () => (
+    <div className="p-6 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
+            <div className="space-y-4">
+              {currentProjectMessages.slice(0, 3).map(message => (
+                <div key={message.id} className="flex items-start space-x-3">
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm">
+                    {message.author.charAt(0)}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-900">{message.content}</p>
+                    <p className="text-xs text-gray-500 mt-1">{message.author} • {message.timestamp}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-lg font-semibold mb-4">Upcoming Deadlines</h3>
+            <div className="space-y-3">
+              {currentProjectTodos.filter(todo => !todo.completed && todo.dueDate).map(todo => (
+                <div key={todo.id} className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-gray-900">{todo.task}</p>
+                    <p className="text-sm text-gray-600">Due {todo.dueDate}</p>
+                  </div>
+                  <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                    {todo.assignee}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        
+        <div className="space-y-6">
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-lg font-semibold mb-4">Team</h3>
+            <div className="space-y-3">
+              {currentProject?.team.map((member, index) => (
+                <div key={index} className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                    {member.charAt(0)}
+                  </div>
+                  <span className="text-gray-900">{member}</span>
+                </div>
+              ))}
+              <button className="flex items-center space-x-3 text-blue-600 hover:text-blue-700">
+                <Plus size={16} />
+                <span className="text-sm">Add team member</span>
+              </button>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-lg font-semibold mb-4">Progress</h3>
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Tasks Completed</span>
+                  <span>{currentProjectTodos.filter(t => t.completed).length}/{currentProjectTodos.length}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-green-600 h-2 rounded-full" 
+                    style={{ 
+                      width: `${(currentProjectTodos.filter(t => t.completed).length / currentProjectTodos.length) * 100}%` 
+                    }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const MessageBoard = () => (
+    <div className="p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-6 border-b">
+            <h2 className="text-xl font-semibold">Message Board</h2>
+            <p className="text-gray-600 mt-1">Keep everyone in the loop with project updates</p>
+          </div>
+          
+          <div className="p-6">
+            <div className="flex space-x-4 mb-6">
+              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white">
+                Y
+              </div>
+              <div className="flex-1">
+                <textarea
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="Share an update with the team..."
+                  className="w-full p-3 border rounded-lg resize-none h-24"
+                />
+                <div className="flex justify-between items-center mt-3">
+                  <button className="flex items-center text-gray-500 hover:text-gray-700">
+                    <Paperclip size={16} className="mr-2" />
+                    Attach file
+                  </button>
+                  <button 
+                    onClick={addMessage}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
+                  >
+                    <Send size={16} className="mr-2" />
+                    Post message
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-6">
+              {currentProjectMessages.map(message => (
+                <div key={message.id} className="flex space-x-4">
+                  <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-gray-700">
+                    {message.author.charAt(0)}
+                  </div>
+                  <div className="flex-1">
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-gray-900">{message.author}</span>
+                        <span className="text-sm text-gray-500">{message.timestamp}</span>
+                      </div>
+                      <p className="text-gray-700">{message.content}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const TodoList = () => (
+    <div className="p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-6 border-b">
+            <h2 className="text-xl font-semibold">To-do List</h2>
+            <p className="text-gray-600 mt-1">Track tasks and deliverables</p>
+          </div>
+          
+          <div className="p-6">
+            <div className="flex space-x-4 mb-6">
+              <input
+                type="text"
+                value={newTodo}
+                onChange={(e) => setNewTodo(e.target.value)}
+                placeholder="Add a new task..."
+                className="flex-1 p-3 border rounded-lg"
+                onKeyPress={(e) => e.key === 'Enter' && addTodo()}
+              />
+              <button 
+                onClick={addTodo}
+                className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700"
+              >
+                Add Task
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              {currentProjectTodos.map(todo => (
+                <div key={todo.id} className="flex items-center space-x-4 p-4 border rounded-lg">
+                  <button
+                    onClick={() => toggleTodo(todo.id)}
+                    className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                      todo.completed 
+                        ? 'bg-green-500 border-green-500 text-white' 
+                        : 'border-gray-300'
+                    }`}
+                  >
+                    {todo.completed && <Check size={12} />}
+                  </button>
+                  <div className="flex-1">
+                    <p className={`font-medium ${todo.completed ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
+                      {todo.task}
+                    </p>
+                    <div className="flex items-center space-x-4 mt-1">
+                      <span className="text-sm text-gray-500">Assigned to: {todo.assignee}</span>
+                      {todo.dueDate && (
+                        <span className="text-sm text-gray-500">Due: {todo.dueDate}</span>
+                      )}
+                    </div>
+                  </div>
+                  <button className="text-gray-400 hover:text-gray-600">
+                    <MoreHorizontal size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const Schedule = () => (
+    <div className="p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-6 border-b">
+            <h2 className="text-xl font-semibold">Schedule</h2>
+            <p className="text-gray-600 mt-1">Upcoming events and milestones</p>
+          </div>
+          
+          <div className="p-6">
+            <div className="space-y-4">
+              {currentProjectEvents.map(event => (
+                <div key={event.id} className="flex items-center space-x-4 p-4 border-l-4 border-blue-500 bg-blue-50">
+                  <Calendar className="text-blue-600" size={20} />
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-900">{event.title}</h3>
+                    <p className="text-gray-600">{event.date} at {event.time}</p>
+                  </div>
+                </div>
+              ))}
+              
+              {currentProjectEvents.length === 0 && (
+                <div className="text-center py-12">
+                  <Calendar className="mx-auto text-gray-400 mb-4" size={48} />
+                  <p className="text-gray-500">No upcoming events scheduled</p>
+                  <button className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    Schedule Event
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const Documents = () => (
+    <div className="p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-6 border-b">
+            <h2 className="text-xl font-semibold">Documents & Files</h2>
+            <p className="text-gray-600 mt-1">Shared project documents and resources</p>
+          </div>
+          
+          <div className="p-6">
+            <div className="space-y-4">
+              {currentProjectDocs.map(doc => (
+                <div key={doc.id} className="flex items-center space-x-4 p-4 border rounded-lg">
+                  <FileText className="text-blue-600" size={20} />
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-900">{doc.name}</h3>
+                    <p className="text-sm text-gray-500">Modified by {doc.author} on {doc.modified}</p>
+                  </div>
+                  <button className="text-gray-400 hover:text-gray-600">
+                    <MoreHorizontal size={16} />
+                  </button>
+                </div>
+              ))}
+              
+              {currentProjectDocs.length === 0 && (
+                <div className="text-center py-12">
+                  <FileText className="mx-auto text-gray-400 mb-4" size={48} />
+                  <p className="text-gray-500">No documents uploaded yet</p>
+                  <button className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    Upload Document
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="flex h-screen bg-gray-100">
+      <Sidebar />
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <header className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{currentProject?.name}</h1>
+              <p className="text-gray-600">{currentProject?.description}</p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <button className="p-2 text-gray-400 hover:text-gray-600">
+                <Search size={20} />
+              </button>
+              <button className="p-2 text-gray-400 hover:text-gray-600">
+                <Bell size={20} />
+              </button>
+              <button className="p-2 text-gray-400 hover:text-gray-600">
+                <Settings size={20} />
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <TabNavigation />
+
+        <main className="flex-1 overflow-y-auto">
+          {activeTab === 'overview' && <Overview />}
+          {activeTab === 'messages' && <MessageBoard />}
+          {activeTab === 'todos' && <TodoList />}
+          {activeTab === 'schedule' && <Schedule />}
+          {activeTab === 'documents' && <Documents />}
+        </main>
+      </div>
+
+      {showNewProjectModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96">
+            <h2 className="text-xl font-semibold mb-4">Create New Project</h2>
+            <div className="space-y-4">
+              <input
+                type="text"
+                placeholder="Project Name"
+                value={newProject.name}
+                onChange={(e) => setNewProject({...newProject, name: e.target.value})}
+                className="w-full p-3 border rounded-lg"
+              />
+              <textarea
+                placeholder="Project Description"
+                value={newProject.description}
+                onChange={(e) => setNewProject({...newProject, description: e.target.value})}
+                className="w-full p-3 border rounded-lg h-24 resize-none"
+              />
+            </div>
+            <div className="flex justify-end space-x-3 mt-6">
+              <button 
+                onClick={() => setShowNewProjectModal(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={createProject}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              >
+                Create Project
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default BasecampClone;
